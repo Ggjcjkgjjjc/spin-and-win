@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin and Win Wheel</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #FF5733;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result, #wallet {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+        #try-again, #withdraw-link, #top-up-message {
+            margin-top: 10px;
+            color: #ff0000;
+            font-size: 20px;
+        }
+        #spin-wheel {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            border: 10px solid #4CAF50;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
+            background-color: #fff;
+        }
+        .segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+            background: #FF5733;
+            transform-origin: 100% 100%;
+        }
+        .segment:nth-child(1) { transform: rotate(0deg); }
+        .segment:nth-child(2) { transform: rotate(72deg); }
+        .segment:nth-child(3) { transform: rotate(144deg); }
+        .segment:nth-child(4) { transform: rotate(216deg); }
+        .segment:nth-child(5) { transform: rotate(288deg); }
+        .value {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+            transform: rotate(36deg);
+        }
+        #pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 20px solid #FF0000;
+        }
+        #withdraw-options {
+            display: none;
+            margin-top: 20px;
+        }
+        #withdraw-options input {
+            margin: 10px 0;
+            padding: 10px;
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spin and Win!</h1>
+    <div id="sign-in">
+        <h2>Register</h2>
+        <input type="text" id="username" placeholder="Enter your username">
+        <button onclick="register()">Register</button>
+    </div>
+
+    <div id="app" style="display: none;">
+        <p id="wallet">Your Wallet: $50</p>
+        <div id="spin-wheel" onclick="autoSpin()">
+            <div class="segment"><div class="value">0</div></div>
+            <div class="segment"><div class="value">50</div></div>
+            <div class="segment"><div class="value">100</div></div>
+            <div class="segment"><div class="value">500</div></div>
+            <div class="segment"><div class="value">1000</div></div>
+            <div id="pointer"></div>
+        </div>
+        <div id="result"></div>
+        <div id="try-again" style="display: none;">
+            <button onclick="tryAgain()">Try Again!</button>
+        </div>
+        <div id="withdraw-link" style="display: none;">
+            <button onclick="showWithdrawOptions()">Withdraw</button>
+        </div>
+        <div id="withdraw-options">
+            <button onclick="withdrawToMpesa()">Withdraw to M-Pesa</button>
+            <button onclick="withdrawToPayPal()">Withdraw to PayPal</button>
+            <div id="mpesa-input" style="display: none;">
+                <input type="text" id="mpesa-number" placeholder="Enter your M-Pesa number">
+                <button onclick="confirmMpesa()">Confirm</button>
+            </div>
+            <div id="paypal-input" style="display: none;">
+                <input type="email" id="paypal-email" placeholder="Enter your email">
+                <button onclick="confirmPayPal()">Confirm</button>
+            </div>
+        </div>
+        <div id="top-up-message" style="display: none;"></div>
+    </div>
+
+    <script>
+        let wallet = 50; // Welcome bonus
+        let spun = false; // Track if the user has spun
+
+        function register() {
+            const username = document.getElementById('username').value;
+            if (username) {
+                document.getElementById('sign-in').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+                alert(`Welcome, ${username}! You have been awarded $50 in your wallet.`);
+            } else {
+                alert('Please enter a username to register.');
+            }
+        }
+
+        function autoSpin() {
+            if (spun) {
+                alert('You can only spin once per registration.');
+                return;
+            }
+            const values = [0, 50, 100, 500, 1000];
+            const randomValue = values[Math.floor(Math.random() * values.length)];
+            wallet += randomValue;
+            document.getElementById('result').innerText = `You won: $${randomValue}`;
+            document.getElementById('wallet').innerText = `Your Wallet: $${wallet}`;
+            spun = true; // Mark as spun
+            document.getElementById('try-again').style.display = 'block';
+            document.getElementById('withdraw-link').style.display = 'block';
+            document.getElementById('spin-wheel').style.transform = 'rotate(' + (Math.random() * 360 + 720) + 'deg)';
+        }
+
+        function tryAgain() {
+            if (confirm('Do you want to spin again? This will reset your wallet.')) {
+                wallet = 50; // Reset wallet to welcome bonus
+                document.getElementById('wallet').innerText = `Your Wallet: $${wallet}`;
+                document.getElementById('result').innerText = '';
+                spun = false; // Reset spin status
+                document.getElementById('try-again').style.display = 'none';
+                document.getElementById('withdraw-link').style.display = 'none';
+                document.getElementById('top-up-message').style.display = 'none';
+                document.getElementById('spin-wheel').style.transform = 'rotate(0deg)'; // Reset rotation
+            }
+        }
+
+        function showWithdrawOptions() {
+            document.getElementById('withdraw-options').style.display = 'block';
+        }
+
+        function withdrawToMpesa() {
+            document.getElementById('mpesa-input').style.display = 'block';
+            document.getElementById('paypal-input').style.display = 'none';
+        }
+
+        function withdrawToPayPal() {
+            document.getElementById('paypal-input').style.display = 'block';
+            document.getElementById('mpesa-input').style.display = 'none';
+        }
+
+        function confirmMpesa() {
+            const mpesaNumber = document.getElementById('mpesa-number').value;
+            if (mpesaNumber) {
+                alert(`STK Push: Pay 750/= to Lucky Winners Promotion.\nPaybill: 247247\nAccount: 0716281767`);
+            } else {
+                alert('Please enter your M-Pesa number.');
+            }
+        }
+
+        function confirmPayPal() {
+            const paypalEmail = document.getElementById('paypal-email').value;
+            if (paypalEmail) {
+                document.getElementById('top-up-message').innerText = 'To claim your winnings, you need to pay 750/=, to PayBill 247247, Account 0716281767.';
+                document.getElementById('top-up-message').style.display = 'block';
+            } else {
+                alert('Please enter your PayPal email.');
+            }
+        }
+    </script>
+</body>
+</html>
